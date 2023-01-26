@@ -1,0 +1,12 @@
+CREATE TABLE user (
+    id int NOT NULL AUTO_INCREMENT,
+    last_name varchar(255),
+    first_name varchar(255),
+    company_name varchar(255),
+    corporate_email VARCHAR(255),
+    phone VARCHAR(255),
+    login_disabled BOOLEAN,
+    status enum('PENDING', 'ACTIVE', 'INACTIVE') NOT NULL,
+    email varchar(255),
+    PRIMARY KEY (id)
+);
