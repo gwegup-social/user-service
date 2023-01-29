@@ -3,7 +3,8 @@ package com.ritrovo.userservice.service;
 import com.ritrovo.userservice.entity.User;
 import com.ritrovo.userservice.error.UserOnboardingException;
 import com.ritrovo.userservice.handler.UserHandler;
-import com.ritrovo.userservice.model.UserOnboardingRequest;
+import com.ritrovo.userservice.model.EmailRegistrationResponse;
+import com.ritrovo.userservice.model.EmailRegistrationRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +26,27 @@ public class UserService {
         this.authService = authService;
     }
 
-    public void onboardUser(UserOnboardingRequest userOnboardingRequest) {
-        performValidationChecks(userOnboardingRequest);
+    public EmailRegistrationResponse onboardUser(EmailRegistrationRequest emailRegistrationRequest) {
+        performValidationChecks(emailRegistrationRequest);
 
-        String email = userOnboardingRequest.getEmail();
+        String email = emailRegistrationRequest.getEmail();
         User onboardedUser = userHandler.onboardUserUsingPersonalEmailId(email);
-        authService.initialiseUserCredentials(onboardedUser.getUserId(), email, userOnboardingRequest.getPassword());
+        boolean isCredentialSaved = authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
+
+        if (isCredentialSaved) {
+            return EmailRegistrationResponse
+                    .builder()
+                    .userId(onboardedUser.getUserId())
+                    .status(onboardedUser.getStatus().getValue())
+                    .build();
+        }
+
+        throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "unable to save user credentials");
     }
 
-    private void performValidationChecks(UserOnboardingRequest userOnboardingRequest) {
+    private void performValidationChecks(EmailRegistrationRequest emailRegistrationRequest) {
 
-        String email = userOnboardingRequest.getEmail();
+        String email = emailRegistrationRequest.getEmail();
         List<User> existingUser = userHandler.findUserByEmail(email);
 
         if (CollectionUtils.isNotEmpty(existingUser)) {

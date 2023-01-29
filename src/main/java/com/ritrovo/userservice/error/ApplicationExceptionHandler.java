@@ -15,6 +15,12 @@ public class ApplicationExceptionHandler {
         return new ResponseEntity(errorMap, e.getStatus());
     }
 
+    @ExceptionHandler(UserOnboardingException.class)
+    public ResponseEntity<?> userOnboardingException(UserOnboardingException e, WebRequest webRequest) {
+        ErrorMap errorMap = new ErrorMap(e.getStatus(), e.getMessage(), webRequest.getDescription(false));
+        return new ResponseEntity(errorMap, e.getStatus());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> GlobalException(Exception e, WebRequest webRequest) {
         ErrorMap errorMap = new ErrorMap(e.getMessage(), webRequest.getDescription(false));
