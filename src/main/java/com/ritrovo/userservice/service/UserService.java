@@ -3,8 +3,8 @@ package com.ritrovo.userservice.service;
 import com.ritrovo.userservice.entity.User;
 import com.ritrovo.userservice.error.UserOnboardingException;
 import com.ritrovo.userservice.handler.UserHandler;
-import com.ritrovo.userservice.model.EmailRegistrationResponse;
 import com.ritrovo.userservice.model.EmailRegistrationRequest;
+import com.ritrovo.userservice.model.EmailRegistrationResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,8 @@ public class UserService {
         boolean isCredentialSaved = authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
 
         if (isCredentialSaved) {
+
+            authService.sendOtpOverEmail(email);
             return EmailRegistrationResponse
                     .builder()
                     .userId(onboardedUser.getUserId())
@@ -50,7 +52,7 @@ public class UserService {
         List<User> existingUser = userHandler.findUserByEmail(email);
 
         if (CollectionUtils.isNotEmpty(existingUser)) {
-            throw new UserOnboardingException(HttpStatus.BAD_REQUEST, "this email id has already been used by another user");
+            throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "this email id has already been used by another user");
         }
     }
 }

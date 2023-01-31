@@ -1,7 +1,10 @@
 package com.ritrovo.userservice.service;
 
+import com.ritrovo.userservice.configuration.AuthServiceConfig;
 import com.ritrovo.userservice.dao.AuthDetailsRepository;
 import com.ritrovo.userservice.entity.AuthDetails;
+import com.ritrovo.userservice.model.OtpInitiationRequest;
+import com.ritrovo.userservice.util.RestClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +15,17 @@ public class AuthService {
 
     private final AuthDetailsRepository authDetailsRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RestClient restClient;
+    private final AuthServiceConfig authServiceConfig;
 
     public AuthService(AuthDetailsRepository authDetailsRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       RestClient restClient,
+                       AuthServiceConfig authServiceConfig) {
         this.authDetailsRepository = authDetailsRepository;
         this.passwordEncoder = passwordEncoder;
+        this.restClient = restClient;
+        this.authServiceConfig = authServiceConfig;
     }
 
     public boolean initialiseUserCredentials(String userId,
@@ -37,5 +46,19 @@ public class AuthService {
 
         authDetailsRepository.insert(authDetails);
         return true;
+    }
+
+    public void sendOtpOverEmail(String email) {
+
+        String baseUrl = authServiceConfig.getBaseUrl();
+        String otpInitiationEndpoint = authServiceConfig.getOtpInitiationEndpoint();
+
+        OtpInitiationRequest otpInitiationRequest = OtpInitiationRequest
+                .builder()
+                .destination(email)
+                .build();
+
+        String url = baseUrl.concat(otpInitiationEndpoint);
+        restClient.postForEntity(url, otpInitiationRequest, String.class);
     }
 }
