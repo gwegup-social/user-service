@@ -4,6 +4,7 @@ package com.ritrovo.userservice.controller;
 import com.ritrovo.userservice.model.EmailRegistrationResponse;
 import com.ritrovo.userservice.model.EmailRegistrationRequest;
 import com.ritrovo.userservice.service.UserService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ public class LoginController {
     }
 
     @PostMapping("/signup")
+    @Transactional
     public EmailRegistrationResponse registerUser(@RequestBody EmailRegistrationRequest emailRegistrationRequest) {
         return userService.onboardUser(emailRegistrationRequest);
     }

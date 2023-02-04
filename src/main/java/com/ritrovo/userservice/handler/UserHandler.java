@@ -24,6 +24,7 @@ public class UserHandler {
         User newUser = User
                 .builder()
                 .personalEmail(email)
+                .firstName("User")
                 .status(User.Status.PERSONAL_EMAIL_VERIFICATION_PENDING)
                 .build();
 
