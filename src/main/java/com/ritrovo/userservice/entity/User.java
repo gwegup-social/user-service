@@ -63,9 +63,9 @@ public class User {
 
     public enum Gender {
 
-        FEMALE("FEMALE"),
-        MALE("MALE"),
-        OTHER("OTHER");
+        FEMALE("Female"),
+        MALE("Male"),
+        OTHER("Others");
         private final String gender;
 
         Gender(String value) {

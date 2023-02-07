@@ -1,8 +1,8 @@
 package com.ritrovo.userservice.controller;
 
 
-import com.ritrovo.userservice.model.EmailRegistrationResponse;
-import com.ritrovo.userservice.model.EmailRegistrationRequest;
+import com.ritrovo.userservice.model.response.EmailRegistrationResponse;
+import com.ritrovo.userservice.model.request.EmailRegistrationRequest;
 import com.ritrovo.userservice.service.UserService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -5,6 +5,7 @@ import com.ritrovo.userservice.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class UserHandler {
@@ -32,6 +33,11 @@ public class UserHandler {
     }
 
     public User saveUser(User user) {
-        return userRepository.insert(user);
+        return userRepository.save(user);
+    }
+
+    public Optional<User> findUserById(String userId) {
+
+        return userRepository.findById(userId);
     }
 }

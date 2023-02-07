@@ -1,4 +1,4 @@
-package com.ritrovo.userservice.model;
+package com.ritrovo.userservice.model.request;
 
 import lombok.Data;
 

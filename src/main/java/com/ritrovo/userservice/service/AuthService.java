@@ -3,7 +3,7 @@ package com.ritrovo.userservice.service;
 import com.ritrovo.userservice.configuration.AuthServiceConfig;
 import com.ritrovo.userservice.dao.AuthDetailsRepository;
 import com.ritrovo.userservice.entity.AuthDetails;
-import com.ritrovo.userservice.model.OtpInitiationRequest;
+import com.ritrovo.userservice.model.request.OtpInitiationRequest;
 import com.ritrovo.userservice.util.RestClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
