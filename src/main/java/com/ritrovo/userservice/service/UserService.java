@@ -69,13 +69,46 @@ public class UserService {
         User user = userOptional.get();
 
         String name = updateUserProfileRequest.getName();
+
         updateName(user, name);
         updateGender(user, updateUserProfileRequest.getGender());
         updateDateOfBirth(user, updateUserProfileRequest.getDateOfBirth());
+        updateCorporateEmail(user, updateUserProfileRequest.getCorporateEmail());
 
         User updatedUser = userHandler.saveUser(user);
         return conversionService.convert(updatedUser, UserDto.class);
 
+    }
+
+    private void updateCorporateEmail(User user, String corporateEmail) {
+
+        Preconditions.checkNotNull(user, "user cant be null to update corporate email");
+
+        if (StringUtils.isBlank(corporateEmail))
+            return;
+
+        user.setCorporateEmail(corporateEmail);
+        String companyName = getCompanyNameFromCorporateEmail(corporateEmail);
+        user.setCompanyName(companyName);
+        user.setStatus(User.Status.CORPORATE_EMAIL_VERIFICATION_PENDING);
+
+        authService.sendOtpOverEmail(corporateEmail);
+    }
+
+    private String getCompanyNameFromCorporateEmail(String corporateEmail) {
+
+        if (StringUtils.isBlank(corporateEmail))
+            return corporateEmail;
+
+        String[] tokens = corporateEmail.split("@");
+
+        if (tokens.length < 2)
+            throw new IllegalArgumentException("invalid email id passed");
+
+        String emailSuffix = tokens[1];
+        int indexOfDot = emailSuffix.indexOf(".");
+        String companyName = emailSuffix.substring(0, indexOfDot);
+        return companyName;
     }
 
     private void updateDateOfBirth(User user, String dateOfBirth) {
@@ -96,7 +129,8 @@ public class UserService {
     private void updateName(User user, String name) {
         Preconditions.checkNotNull(user, "user cant be null to update username");
 
-        if (StringUtils.isBlank(name)) return;
+        if (StringUtils.isBlank(name))
+            return;
 
         String[] tokens = StringUtils.splitPreserveAllTokens(name, " ");
 
