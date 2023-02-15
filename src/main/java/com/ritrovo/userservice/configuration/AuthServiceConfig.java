@@ -11,4 +11,5 @@ public class AuthServiceConfig {
 
     private String baseUrl;
     private String otpInitiationEndpoint;
+    private String otpStatusEndpoint;
 }

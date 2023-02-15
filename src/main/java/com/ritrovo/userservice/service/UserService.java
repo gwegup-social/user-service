@@ -8,7 +8,7 @@ import com.ritrovo.userservice.model.dto.UserDto;
 import com.ritrovo.userservice.model.request.EmailRegistrationRequest;
 import com.ritrovo.userservice.model.request.UpdateUserProfileRequest;
 import com.ritrovo.userservice.model.response.EmailRegistrationResponse;
-import org.apache.commons.collections.CollectionUtils;
+import com.ritrovo.userservice.model.response.OtpStatusResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -44,15 +46,13 @@ public class UserService {
 
         String email = emailRegistrationRequest.getEmail();
         User onboardedUser = userHandler.onboardUserUsingPersonalEmailId(email);
-        boolean isCredentialSaved = authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
+        authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
 
-        if (isCredentialSaved) {
-
-            authService.sendOtpOverEmail(email);
-            return EmailRegistrationResponse.builder().userId(onboardedUser.getUserId()).status(onboardedUser.getStatus().getValue()).build();
-        }
-
-        throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "unable to save user credentials");
+        return EmailRegistrationResponse
+                .builder()
+                .userId(onboardedUser.getUserId())
+                .status(onboardedUser.getStatus().getValue())
+                .build();
     }
 
     public UserDto updateUserProfile(UpdateUserProfileRequest updateUserProfileRequest) {
@@ -87,6 +87,7 @@ public class UserService {
         if (StringUtils.isBlank(corporateEmail))
             return;
 
+        corporateEmail = corporateEmail.toLowerCase(Locale.ROOT);
         user.setCorporateEmail(corporateEmail);
         String companyName = getCompanyNameFromCorporateEmail(corporateEmail);
         user.setCompanyName(companyName);
@@ -150,18 +151,26 @@ public class UserService {
 
     private void performValidationChecks(EmailRegistrationRequest emailRegistrationRequest) {
 
-        String email = emailRegistrationRequest.getEmail();
-        List<User> existingUsers = userHandler.findUserByEmail(email);
+        validateEmailForExistingUsers(emailRegistrationRequest.getEmail());
+        validateEmailOtpVerification(emailRegistrationRequest.getOtpRequestId());
+    }
 
-        if (existingUsers.size() > 1)
-            throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "multiple users found with same email id");
+    private void validateEmailOtpVerification(String otpRequestId) {
+        OtpStatusResponse otpRequestStatus = authService.getOtpRequestStatus(otpRequestId);
 
-        if (CollectionUtils.isNotEmpty(existingUsers)) {
-
-            User existingUser = existingUsers.get(0);
-            if (!existingUser.getStatus().equals(User.Status.PERSONAL_EMAIL_VERIFICATION_PENDING))
-                throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "this email id has already been used by another user");
+        if (Objects.isNull(otpRequestStatus)) {
+            throw new RuntimeException("email not yet verified");
         }
 
+        boolean isVerified = otpRequestStatus.getOtpVerificationStatus().equalsIgnoreCase("VERIFICATION_COMPLETED");
+
+        if (!isVerified)
+            throw new RuntimeException("email not yet verified");
+    }
+
+    private void validateEmailForExistingUsers(String email) {
+        List<User> existingUsers = userHandler.findUserByEmail(email);
+        if (!existingUsers.isEmpty())
+            throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "multiple users found with same email id");
     }
 }

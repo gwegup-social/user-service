@@ -5,6 +5,7 @@ import com.ritrovo.userservice.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Component
@@ -22,11 +23,13 @@ public class UserHandler {
 
     public User onboardUserUsingPersonalEmailId(String email) {
 
+        email = email.toLowerCase(Locale.ROOT);
+
         User newUser = User
                 .builder()
                 .personalEmail(email)
                 .firstName("User")
-                .status(User.Status.PERSONAL_EMAIL_VERIFICATION_PENDING)
+                .status(User.Status.ONBOARDED)
                 .build();
 
         return saveUser(newUser);

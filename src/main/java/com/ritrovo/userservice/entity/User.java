@@ -43,12 +43,10 @@ public class User {
 
 
     public enum Status {
-        PERSONAL_EMAIL_VERIFICATION_PENDING("PERSONAL_EMAIL_VERIFICATION_PENDING"),
-        PERSONAL_EMAIL_VERIFICATION_COMPLETED("PERSONAL_EMAIL_VERIFICATION_COMPLETED"),
+        ONBOARDED("ONBOARDED"),
+        PROFILE_UPDATE_PENDING("PROFILE_UPDATE_PENDING"),
         CORPORATE_EMAIL_VERIFICATION_PENDING("CORPORATE_EMAIL_VERIFICATION_PENDING"),
-        CORPORATE_EMAIL_VERIFICATION_COMPLETED("CORPORATE_EMAIL_VERIFICATION_COMPLETED"),
-        ACTIVE("ACTIVE"),     // corporate verified stage.
-        INACTIVE("INACTIVE");   // corporate activity suspecious (i.e user have not verified corporate email in the last 3 month )
+        VERIFIED("VERIFIED");
 
         private final String value;
 

@@ -6,4 +6,5 @@ import lombok.Data;
 public class EmailRegistrationRequest {
     private String email;
     private String password;
+    private String otpRequestId;
 }

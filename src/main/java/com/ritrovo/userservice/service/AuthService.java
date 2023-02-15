@@ -1,14 +1,17 @@
 package com.ritrovo.userservice.service;
 
+import com.google.common.collect.Maps;
 import com.ritrovo.userservice.configuration.AuthServiceConfig;
 import com.ritrovo.userservice.dao.AuthDetailsRepository;
 import com.ritrovo.userservice.entity.AuthDetails;
 import com.ritrovo.userservice.model.request.OtpInitiationRequest;
+import com.ritrovo.userservice.model.response.OtpStatusResponse;
 import com.ritrovo.userservice.util.RestClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -60,5 +63,16 @@ public class AuthService {
 
         String url = baseUrl.concat(otpInitiationEndpoint);
         restClient.postForEntity(url, otpInitiationRequest, String.class);
+    }
+
+    public OtpStatusResponse getOtpRequestStatus(String otpRequestId) {
+        String baseUrl = authServiceConfig.getBaseUrl();
+        String otpInitiationEndpoint = authServiceConfig.getOtpStatusEndpoint();
+        String url = baseUrl.concat(otpInitiationEndpoint);
+
+        Map<String, Object> uriVariables = Maps.newHashMap();
+        uriVariables.put("requestId", otpRequestId);
+
+        return restClient.getForEntity(url, OtpStatusResponse.class, uriVariables);
     }
 }
