@@ -7,7 +7,7 @@ import com.ritrovo.userservice.handler.UserHandler;
 import com.ritrovo.userservice.model.dto.UserDto;
 import com.ritrovo.userservice.model.request.EmailRegistrationRequest;
 import com.ritrovo.userservice.model.request.UpdateUserProfileRequest;
-import com.ritrovo.userservice.model.response.EmailRegistrationResponse;
+import com.ritrovo.userservice.model.response.LoginResponse;
 import com.ritrovo.userservice.model.response.OtpStatusResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,18 +41,32 @@ public class UserService {
         this.conversionService = conversionService;
     }
 
-    public EmailRegistrationResponse onboardUser(EmailRegistrationRequest emailRegistrationRequest) {
+    public LoginResponse onboardUser(EmailRegistrationRequest emailRegistrationRequest) {
+        performDataPreprocessing(emailRegistrationRequest);
         performValidationChecks(emailRegistrationRequest);
 
         String email = emailRegistrationRequest.getEmail();
         User onboardedUser = userHandler.onboardUserUsingPersonalEmailId(email);
         authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
 
-        return EmailRegistrationResponse
+        return LoginResponse
                 .builder()
                 .userId(onboardedUser.getUserId())
                 .status(onboardedUser.getStatus().getValue())
                 .build();
+    }
+
+    private void performDataPreprocessing(EmailRegistrationRequest emailRegistrationRequest) {
+
+        if (Objects.isNull(emailRegistrationRequest))
+            return;
+
+        String email = emailRegistrationRequest.getEmail();
+        if (StringUtils.isNotBlank(email)) {
+            email = StringUtils.deleteWhitespace(email);
+            email = email.toLowerCase();
+            emailRegistrationRequest.setEmail(email);
+        }
     }
 
     public UserDto updateUserProfile(UpdateUserProfileRequest updateUserProfileRequest) {
