@@ -12,4 +12,8 @@ public class AuthServiceConfig {
     private String baseUrl;
     private String otpInitiationEndpoint;
     private String otpStatusEndpoint;
+    private String accessTokenEndpoint;
+    private String tokenValidationEndpoint;
+    private String username;
+    private String password;
 }

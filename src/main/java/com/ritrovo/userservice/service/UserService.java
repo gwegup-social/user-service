@@ -7,6 +7,7 @@ import com.ritrovo.userservice.handler.UserHandler;
 import com.ritrovo.userservice.model.dto.UserDto;
 import com.ritrovo.userservice.model.request.EmailRegistrationRequest;
 import com.ritrovo.userservice.model.request.UpdateUserProfileRequest;
+import com.ritrovo.userservice.model.response.AuthTokenPair;
 import com.ritrovo.userservice.model.response.LoginResponse;
 import com.ritrovo.userservice.model.response.OtpStatusResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -47,12 +48,18 @@ public class UserService {
 
         String email = emailRegistrationRequest.getEmail();
         User onboardedUser = userHandler.onboardUserUsingPersonalEmailId(email);
-        authService.initialiseUserCredentials(onboardedUser.getUserId(), email, emailRegistrationRequest.getPassword());
+        String userId = onboardedUser.getUserId();
+        authService.initialiseUserCredentials(userId, email, emailRegistrationRequest.getPassword());
+        AuthTokenPair accessTokenPair = authService.getAccessTokenPair(userId);
 
         return LoginResponse
                 .builder()
-                .userId(onboardedUser.getUserId())
+                .userId(userId)
+                .displayName(onboardedUser.getDisplayName())
+                .orgName(onboardedUser.getCompanyName())
                 .status(onboardedUser.getStatus().getValue())
+                .accessToken(accessTokenPair.getAuthToken())
+                .refreshToken(accessTokenPair.getRefreshToken())
                 .build();
     }
 
@@ -105,7 +112,7 @@ public class UserService {
         user.setCorporateEmail(corporateEmail);
         String companyName = getCompanyNameFromCorporateEmail(corporateEmail);
         user.setCompanyName(companyName);
-        user.setStatus(User.Status.CORPORATE_EMAIL_VERIFICATION_PENDING);
+        user.setStatus(User.Status.CORPORATE_EMAIL_VERIFIED);
 
         authService.sendOtpOverEmail(corporateEmail);
     }
@@ -186,5 +193,11 @@ public class UserService {
         List<User> existingUsers = userHandler.findUserByEmail(email);
         if (!existingUsers.isEmpty())
             throw new UserOnboardingException(HttpStatus.INTERNAL_SERVER_ERROR, "multiple users found with same email id");
+    }
+
+    public UserDto getUserDetails(String userId) {
+        Optional<User> userOptional = userHandler.findUserById(userId);
+        User user = userOptional.orElseThrow(() -> new RuntimeException("user not found"));
+        return conversionService.convert(user, UserDto.class);
     }
 }

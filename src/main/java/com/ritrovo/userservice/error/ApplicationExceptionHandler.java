@@ -26,10 +26,4 @@ public class ApplicationExceptionHandler {
         ErrorMap errorMap = new ErrorMap( e.getMessage(), webRequest.getDescription(false));
         return new ResponseEntity<>(errorMap,HttpStatus.BAD_REQUEST);
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> GlobalException(Exception e, WebRequest webRequest) {
-        ErrorMap errorMap = new ErrorMap(e.getMessage(), webRequest.getDescription(false));
-        return new ResponseEntity(errorMap, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }

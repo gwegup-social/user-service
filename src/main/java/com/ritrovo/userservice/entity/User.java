@@ -3,6 +3,7 @@ package com.ritrovo.userservice.entity;
 
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -37,16 +38,21 @@ public class User {
 
     private LocalDate dateOfBirth;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
-    private LocalDateTime lastUpdated = LocalDateTime.now();
+    private LocalDateTime lastUpdated;
+
+    public String getDisplayName() {
+        String firstName = StringUtils.isNotBlank(getFirstName()) ? getFirstName() : "";
+        String lastName = StringUtils.isNotBlank(getLastName()) ? getLastName() : "";
+        return firstName + " " + lastName;
+    }
 
 
     public enum Status {
         ONBOARDED("ONBOARDED"),
-        PROFILE_UPDATE_PENDING("PROFILE_UPDATED"),
-        CORPORATE_EMAIL_VERIFICATION_PENDING("CORPORATE_EMAIL_VERIFIED"),
-        VERIFIED("VERIFIED");
+        PROFILE_UPDATED("PROFILE_UPDATED"),
+        CORPORATE_EMAIL_VERIFIED("CORPORATE_EMAIL_VERIFIED");
 
         private final String value;
 

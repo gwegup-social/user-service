@@ -11,6 +11,6 @@ public class LoginResponse {
     private String status;
     private String displayName;
     private String orgName;
-    private String sessionToken;
+    private String accessToken;
     private String refreshToken;
 }

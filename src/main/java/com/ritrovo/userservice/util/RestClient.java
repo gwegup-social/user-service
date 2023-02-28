@@ -7,6 +7,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class RestClient {
@@ -17,9 +18,14 @@ public class RestClient {
         this.restTemplate = restTemplate;
     }
 
-    public <T> T postForEntity(String endpoint, Object request, Class<T> responseType) {
+    public <T> T postForEntity(String endpoint,
+                               Object request,
+                               Class<T> responseType,
+                               Map<String, String> headers) {
 
-        HttpEntity<Object> requestEntity = new HttpEntity<>(request, getDefaultHeaders());
+        HttpHeaders defaultHeaders = getDefaultHeaders();
+        addInputHeaders(defaultHeaders, headers);
+        HttpEntity<Object> requestEntity = new HttpEntity<>(request, defaultHeaders);
         ResponseEntity<T> responseEntity = restTemplate.postForEntity(endpoint, requestEntity, responseType);
 
         if (responseEntity.getStatusCode().equals(HttpStatus.OK)) {
@@ -27,6 +33,14 @@ public class RestClient {
         }
 
         throw new RuntimeException("unable to send post request");
+    }
+
+    private void addInputHeaders(HttpHeaders defaultHeaders,
+                                 Map<String, String> headers) {
+        if (Objects.isNull(headers) || Objects.isNull(defaultHeaders))
+            return;
+
+        headers.forEach(defaultHeaders::set);
     }
 
     public <T> T getForEntity(String endpoint, Class<T> responseType, Map<String, Object> uriVariables) {

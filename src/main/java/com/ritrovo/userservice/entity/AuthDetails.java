@@ -6,7 +6,9 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document("auth_details")
+import java.util.Set;
+
+@Document("auth-details")
 @Data
 @Builder
 public class AuthDetails {
@@ -16,6 +18,7 @@ public class AuthDetails {
     private String password;
     private String algorithm;
     private String userId;
+    private Set<String> authorities;
 
 }
 
