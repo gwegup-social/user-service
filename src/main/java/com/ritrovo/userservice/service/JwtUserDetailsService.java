@@ -18,19 +18,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@Qualifier("mongoUserDetailsService")
-public class MongoUserDetailsService implements UserDetailsService {
+@Qualifier("jwtUserDetailsService")
+public class JwtUserDetailsService implements UserDetailsService {
 
     private final AuthDetailsRepository authDetailsRepository;
 
-    public MongoUserDetailsService(AuthDetailsRepository authDetailsRepository) {
+    public JwtUserDetailsService(AuthDetailsRepository authDetailsRepository) {
         this.authDetailsRepository = authDetailsRepository;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Optional<AuthDetails> userOptional = authDetailsRepository.findById(username);
+        Optional<AuthDetails> userOptional = authDetailsRepository.findByUserId(username);
 
         AuthDetails authDetails = userOptional.orElseThrow(() -> new UsernameNotFoundException("could not find user"));
 

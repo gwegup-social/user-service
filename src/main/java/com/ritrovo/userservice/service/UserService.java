@@ -6,6 +6,7 @@ import com.ritrovo.userservice.error.UserOnboardingException;
 import com.ritrovo.userservice.handler.UserHandler;
 import com.ritrovo.userservice.model.dto.UserDto;
 import com.ritrovo.userservice.model.request.EmailRegistrationRequest;
+import com.ritrovo.userservice.model.request.UpdateCorporateEmailRequest;
 import com.ritrovo.userservice.model.request.UpdateUserProfileRequest;
 import com.ritrovo.userservice.model.response.AuthTokenPair;
 import com.ritrovo.userservice.model.response.LoginResponse;
@@ -44,7 +45,7 @@ public class UserService {
 
     public LoginResponse onboardUser(EmailRegistrationRequest emailRegistrationRequest) {
         performDataPreprocessing(emailRegistrationRequest);
-        performValidationChecks(emailRegistrationRequest);
+        performEmailValidationChecks(emailRegistrationRequest.getEmail(), emailRegistrationRequest.getOtpRequestId());
 
         String email = emailRegistrationRequest.getEmail();
         User onboardedUser = userHandler.onboardUserUsingPersonalEmailId(email);
@@ -94,11 +95,21 @@ public class UserService {
         updateName(user, name);
         updateGender(user, updateUserProfileRequest.getGender());
         updateDateOfBirth(user, updateUserProfileRequest.getDateOfBirth());
-        updateCorporateEmail(user, updateUserProfileRequest.getCorporateEmail());
+        updateUserStatus(user);
 
         User updatedUser = userHandler.saveUser(user);
         return conversionService.convert(updatedUser, UserDto.class);
 
+    }
+
+    private void updateUserStatus(User user) {
+
+        Preconditions.checkNotNull(user, "user cant be null to update user status");
+
+        User.Status status = user.getStatus();
+
+        if (Objects.nonNull(status) && status.equals(User.Status.ONBOARDED))
+            user.setStatus(User.Status.PROFILE_UPDATED);
     }
 
     private void updateCorporateEmail(User user, String corporateEmail) {
@@ -113,8 +124,6 @@ public class UserService {
         String companyName = getCompanyNameFromCorporateEmail(corporateEmail);
         user.setCompanyName(companyName);
         user.setStatus(User.Status.CORPORATE_EMAIL_VERIFIED);
-
-        authService.sendOtpOverEmail(corporateEmail);
     }
 
     private String getCompanyNameFromCorporateEmail(String corporateEmail) {
@@ -170,10 +179,10 @@ public class UserService {
 
     }
 
-    private void performValidationChecks(EmailRegistrationRequest emailRegistrationRequest) {
+    private void performEmailValidationChecks(String email, String otpRequestId) {
 
-        validateEmailForExistingUsers(emailRegistrationRequest.getEmail());
-        validateEmailOtpVerification(emailRegistrationRequest.getOtpRequestId());
+        validateEmailForExistingUsers(email);
+        validateEmailOtpVerification(otpRequestId);
     }
 
     private void validateEmailOtpVerification(String otpRequestId) {
@@ -198,6 +207,28 @@ public class UserService {
     public UserDto getUserDetails(String userId) {
         Optional<User> userOptional = userHandler.findUserById(userId);
         User user = userOptional.orElseThrow(() -> new RuntimeException("user not found"));
+        return conversionService.convert(user, UserDto.class);
+    }
+
+    public UserDto updateCorporateEmail(UpdateCorporateEmailRequest updateCorporateEmailRequest) {
+
+        Preconditions.checkNotNull(updateCorporateEmailRequest, "reuqest cant be null to update corporate email");
+        String corporateEmail = updateCorporateEmailRequest.getCorporateEmail();
+        String otpRequestId = updateCorporateEmailRequest.getOtpRequestId();
+        String userId = updateCorporateEmailRequest.getUserId();
+
+        Preconditions.checkArgument(StringUtils.isNotBlank(corporateEmail), "corporate email cant be null or empty to be updated");
+        Preconditions.checkArgument(StringUtils.isNotBlank(otpRequestId), "otp request id cant be null or empty to update corporate email");
+        Preconditions.checkArgument(StringUtils.isNotBlank(otpRequestId), "user id id cant be null or empty to update corporate email");
+
+        performEmailValidationChecks(updateCorporateEmailRequest.getCorporateEmail(), updateCorporateEmailRequest.getOtpRequestId());
+
+        Optional<User> userOptional = userHandler.findUserById(userId);
+
+        User user = userOptional.orElseThrow(() -> new RuntimeException("unable to find user with user id : " + userId));
+        updateCorporateEmail(user, corporateEmail);
+        user = userHandler.saveUser(user);
+
         return conversionService.convert(user, UserDto.class);
     }
 }

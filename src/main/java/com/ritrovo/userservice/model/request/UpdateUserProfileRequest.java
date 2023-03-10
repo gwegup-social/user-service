@@ -11,6 +11,5 @@ public class UpdateUserProfileRequest {
     private String name;
     private String dateOfBirth;
     private String gender;
-    private String corporateEmail;
     private String phoneNumber;
 }

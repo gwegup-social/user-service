@@ -24,6 +24,7 @@ public class UserToDtoConverter implements Converter<User, UserDto> {
                 .dateOfBirth((Objects.nonNull(dateOfBirth) ? dateOfBirth.toString() : ""))
                 .personalEmail(source.getPersonalEmail())
                 .corporateEmail(source.getCorporateEmail())
+                .status(source.getStatus().name())
                 .build();
     }
 }

@@ -1,33 +1,38 @@
 package com.ritrovo.userservice.configuration;
 
-import com.ritrovo.userservice.filter.JwtAuthenticationFilter;
+import com.ritrovo.userservice.service.JwtAuthenticationProvider;
+import com.ritrovo.userservice.service.MongoAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 @Configuration
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
+    private final MongoAuthenticationProvider mongoAuthenticationProvider;
+    private final JwtAuthConfigurer jwtAuthConfigurer;
 
-    public SecurityConfiguration(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+
+    public SecurityConfiguration(JwtAuthenticationProvider jwtAuthenticationProvider,
+                                 MongoAuthenticationProvider mongoAuthenticationProvider,
+                                 JwtAuthConfigurer jwtAuthConfigurer) {
+        this.jwtAuthenticationProvider = jwtAuthenticationProvider;
+        this.mongoAuthenticationProvider = mongoAuthenticationProvider;
+        this.jwtAuthConfigurer = jwtAuthConfigurer;
     }
-
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .httpBasic(Customizer.withDefaults())
+                .apply(jwtAuthConfigurer)
+                .and()
                 .authorizeRequests()
-                .antMatchers("/api/user/details")
+                .antMatchers("/api/user/**")
                 .authenticated()
                 .antMatchers("/api/**")
                 .permitAll()
@@ -36,11 +41,11 @@ public class SecurityConfiguration {
                 .disable()
                 .anonymous()
                 .disable()
-                .addFilterBefore(jwtAuthenticationFilter,BasicAuthenticationFilter.class);
+                .authenticationProvider(jwtAuthenticationProvider)
+                .authenticationProvider(mongoAuthenticationProvider);
 
         return http.build();
     }
-
 
 
 }

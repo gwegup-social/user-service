@@ -6,6 +6,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.ritrovo.userservice.model.JwtAuthenticationToken;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -25,7 +26,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final AuthService authService;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationProvider(AuthService authService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationProvider(AuthService authService,
+                                     @Qualifier("jwtUserDetailsService") UserDetailsService userDetailsService) {
         this.authService = authService;
         this.userDetailsService = userDetailsService;
     }
